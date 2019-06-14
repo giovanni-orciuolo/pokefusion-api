@@ -1,6 +1,5 @@
 const chromeLauncher = require("chrome-launcher")
 const CRI = require("chrome-remote-interface")
-const fs = require("fs")
 const sharp = require("sharp")
 
 const SITE_URL = "https://www.japeal.com/pkm"
@@ -21,7 +20,7 @@ async function sleep(seconds) {
   })
 }
 
-async function loadClient() {
+async function getRandomFusion() {
   let client, chrome;
   try {
 
@@ -108,11 +107,11 @@ async function loadClient() {
     console.log(fusionInfo)
 
   } catch (err) {
-    console.error("Fatal error during loadClient()", err);
+    console.error("Fatal error during loadClient()", err)
   } finally {
     if (client) { await client.close() }
     if (chrome) { await chrome.kill() }
   }
 }
 
-loadClient().catch();
+exports.getRandomFusion = getRandomFusion
