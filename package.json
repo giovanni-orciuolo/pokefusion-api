@@ -1,0 +1,29 @@
+{
+  "name": "pokefusion-api",
+  "version": "1.0.0",
+  "description": "A Node.js API that connects to japeal.com/pkm through a Chrome Headless instance and steals fusions lol",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js"
+  },
+  "keywords": [
+    "pokemon",
+    "fusion",
+    "api"
+  ],
+  "author": "Giovanni Orciuolo <giovanni.orciuolo1999@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "chrome-launcher": "^0.10.7",
+    "chrome-remote-interface": "^0.27.2"
+  },
+  "devDependencies": {
+    "eslint": "^5.16.0",
+    "eslint-config-standard": "^12.0.0",
+    "eslint-plugin-import": "^2.17.3",
+    "eslint-plugin-node": "^9.1.0",
+    "eslint-plugin-promise": "^4.1.1",
+    "eslint-plugin-standard": "^4.0.0",
+    "nodemon": "^1.19.1"
+  }
+}
