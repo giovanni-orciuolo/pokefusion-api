@@ -1,6 +1,6 @@
 {
   "name": "pokefusion-api",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A Node.js API that connects to japeal.com/pkm through a Chrome Headless instance and steals fusions lol",
   "main": "src/index.js",
   "author": "Giovanni Orciuolo <giovanni.orciuolo1999@gmail.com>",

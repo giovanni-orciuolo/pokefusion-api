@@ -104,7 +104,7 @@ async function getRandomFusion() {
       ...fusionInfo,
       pokedexBase64: Buffer.from(croppedPokedex).toString("base64")
     }
-    console.log(fusionInfo)
+    return fusionInfo
 
   } catch (err) {
     console.error("Fatal error during loadClient()", err)
