@@ -15,10 +15,6 @@ async function sleep(seconds) {
   })
 }
 
-function getRandomPokemon() {
-  return Math.floor(Math.random() * 802);
-}
-
 async function loadClient() {
   let client, chrome;
   try {
@@ -52,9 +48,8 @@ async function loadClient() {
     ])
     await Security.setOverrideCertificateErrors({override: true});
 
-    await Page.navigate({
-      url: SITE_URL
-    })
+    // noinspection JSCheckFunctionSignatures
+    await Page.navigate({ url: SITE_URL })
     await Page.loadEventFired();
 
     // Page fully loaded, you can execute scripts now
@@ -63,14 +58,32 @@ async function loadClient() {
     await sleep(1)
 
     // Close the Patreon dialog and make the fusion happen
-    await Runtime.evaluate({expression: `ShowUnlock(); LoadNewFusionDelay(${getRandomPokemon()}, ${getRandomPokemon()}, 0);`})
+    await Runtime.evaluate({expression: `
+      ShowUnlock();
+      document.getElementById("fbutton").onclick();
+    `})
 
     // Wait another 5 seconds for the fusion
     await sleep(5)
 
-    // Grab base64 of final fusion
-    const { result } = await Runtime.evaluate({expression: `document.getElementById('combinedNEW').toDataURL()`})
-    console.log(result.value)
+    // Grab info about final fusion
+    const { result } = await Runtime.evaluate({expression: `
+    function grabFusionInfo() {
+      var fusionIndexes = document.getElementById('fbutton').onclick.toString()
+        .replace('function onclick(event) {', '')
+        .replace('}', '').replace('LoadNewFusionDelay(', '')
+        .replace(')', '').trim().split(',');
+      return JSON.stringify({
+        leftPkmnIndex: parseInt(fusionIndexes[0]),
+        rightPkmnIndex: parseInt(fusionIndexes[1]),
+        fusionBase64: document.getElementById('combinedNEW').toDataURL(),
+        fusionName: document.getElementById('fnametxt').innerHTML.trim(),
+      })
+    }
+    grabFusionInfo()
+    `})
+    const fusionInfo = JSON.parse(result.value)
+    console.log(fusionInfo)
 
   } catch (err) {
     console.error("Fatal error during loadClient()", err);

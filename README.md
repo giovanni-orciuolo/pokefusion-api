@@ -12,8 +12,9 @@ Guide on how to get all the juicy stuff below
 ```
 Goto https://japeal.com/pkm/
 
-#xcloseBtn -> Click OR call ShowUnlock()
-#fbutton -> Click OR call LoadNewFusionDelay(411, 279, 0) Parameters are the Pokémon index numbers
+#xcloseBtn -> Call onclick() OR call ShowUnlock()
+#fbutton -> Call onclick() OR call LoadNewFusionDelay(411, 279, 0) (Parameters are the Pokémon index numbers)
+I do not recommend calling LoadNewFusionDelay directly with custom parameters because the site will bug in some parts if you do
 
 To get images:
 #combinedNEW -> canvas.toDataURL() -> Returns base64 of final fusion sprite
