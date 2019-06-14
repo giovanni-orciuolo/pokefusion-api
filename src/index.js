@@ -1,11 +1,17 @@
 const chromeLauncher = require("chrome-launcher")
 const CRI = require("chrome-remote-interface")
+const fs = require("fs")
+const sharp = require("sharp")
 
 const SITE_URL = "https://www.japeal.com/pkm"
 
 async function launchChrome() {
   return await chromeLauncher.launch({
-    chromeFlags: [ '--disable-gpu', '--headless' ]
+    chromeFlags: [
+      '--disable-gpu',
+      '--headless',
+      '--window-size=1040,780'
+    ]
   })
 }
 
@@ -82,7 +88,23 @@ async function loadClient() {
     }
     grabFusionInfo()
     `})
-    const fusionInfo = JSON.parse(result.value)
+    let fusionInfo = JSON.parse(result.value)
+
+    // Grab Pokédex entry image from page
+    await Runtime.evaluate({expression: "changeBG9()"}) // Open Pokédex
+    const { data } = await Page.captureScreenshot(); // 214, 200 -> 596, 409.81
+
+    const croppedPokedex = await sharp(Buffer.from(data, 'base64'))
+      .extract({
+        width: 596, height: 410,
+        left: 214, top: 200
+      })
+      .toBuffer()
+
+    fusionInfo = {
+      ...fusionInfo,
+      pokedexBase64: Buffer.from(croppedPokedex).toString("base64")
+    }
     console.log(fusionInfo)
 
   } catch (err) {
@@ -93,4 +115,4 @@ async function loadClient() {
   }
 }
 
-loadClient();
+loadClient().catch();
