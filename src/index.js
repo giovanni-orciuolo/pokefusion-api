@@ -1,18 +1,6 @@
-const chromeLauncher = require("chrome-launcher")
-const CRI = require("chrome-remote-interface")
-const sharp = require("sharp")
+const puppeteer = require("puppeteer")
 
 const SITE_URL = "https://www.japeal.com/pkm"
-
-async function launchChrome() {
-  return await chromeLauncher.launch({
-    chromeFlags: [
-      '--disable-gpu',
-      '--headless',
-      '--window-size=1040,780'
-    ]
-  })
-}
 
 async function sleep(seconds) {
   return new Promise(resolve => {
@@ -21,41 +9,19 @@ async function sleep(seconds) {
 }
 
 async function getRandomFusion() {
-  let client, chrome;
+  let browser;
   try {
 
-    chrome = await launchChrome()
-    client = await CRI({
-      port: chrome.port
+    browser = await puppeteer.launch()
+    const page = await browser.newPage()
+    await page.setViewport({
+      width: 1040,
+      height: 780
     })
+    console.log("[PokéFusion API] Launched browser through Puppeteer")
 
-    const {
-      Network,
-      Page,
-      Security,
-      DOM,
-      Runtime,
-    } = client
-
-    Security.certificateError(({eventId}) => {
-      Security.handleCertificateError({
-        eventId,
-        action: 'continue'
-      });
-    });
-
-    await Promise.all([
-      Network.enable(),
-      Page.enable(),
-      Security.enable(),
-      Runtime.enable(),
-      DOM.enable(),
-    ])
-    await Security.setOverrideCertificateErrors({override: true});
-
-    // noinspection JSCheckFunctionSignatures
-    await Page.navigate({ url: SITE_URL })
-    await Page.loadEventFired();
+    console.log("[PokéFusion API] Navigating to " + SITE_URL)
+    await page.goto(SITE_URL)
 
     // Page fully loaded, you can execute scripts now
 
@@ -63,16 +29,17 @@ async function getRandomFusion() {
     await sleep(1)
 
     // Close the Patreon dialog and make the fusion happen
-    await Runtime.evaluate({expression: `
+    await page.evaluate(`
       ShowUnlock();
       document.getElementById("fbutton").onclick();
-    `})
+    `)
 
     // Wait another 5 seconds for the fusion
     await sleep(5)
+    console.log("[PokéFusion API] Getting fusion info!")
 
     // Grab info about final fusion
-    const { result } = await Runtime.evaluate({expression: `
+    const result = await page.evaluate(`
     function grabFusionInfo() {
       var fusionIndexes = document.getElementById('fbutton').onclick.toString()
         .replace('function onclick(event) {', '')
@@ -86,31 +53,33 @@ async function getRandomFusion() {
       })
     }
     grabFusionInfo()
-    `})
-    let fusionInfo = JSON.parse(result.value)
+    `)
+    let fusionInfo = JSON.parse(result)
+
+    console.log("[PokéFusion API] Taking Pokédex screenshot!")
 
     // Grab Pokédex entry image from page
-    await Runtime.evaluate({expression: "changeBG9()"}) // Open Pokédex
-    const { data } = await Page.captureScreenshot(); // 214, 200 -> 596, 409.81
+    await page.evaluate(`changeBG9()`) // Open Pokédex
+    const pokedexBase64 = await page.screenshot({
+      clip: {
+        x: 222,
+        y: 545,
+        width: 596,
+        height: 410
+      },
+      encoding: "base64"
+    });
 
-    const croppedPokedex = await sharp(Buffer.from(data, 'base64'))
-      .extract({
-        width: 596, height: 410,
-        left: 214, top: 200
-      })
-      .toBuffer()
-
-    fusionInfo = {
+    console.log("[PokéFusion API] Your fusion is ready!")
+    return {
       ...fusionInfo,
-      pokedexBase64: Buffer.from(croppedPokedex).toString("base64")
+      pokedexBase64: pokedexBase64
     }
-    return fusionInfo
 
   } catch (err) {
-    console.error("Fatal error during loadClient()", err)
+    console.error("[PokéFusion API] Fatal Error!", err)
   } finally {
-    if (client) { await client.close() }
-    if (chrome) { await chrome.kill() }
+    if (browser) { await browser.close() }
   }
 }
 
