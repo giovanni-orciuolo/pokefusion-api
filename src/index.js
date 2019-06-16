@@ -8,16 +8,19 @@ async function sleep(seconds) {
   })
 }
 
-async function getRandomFusion() {
+async function getRandomFusion(browserPath) {
   let browser;
   try {
 
-    browser = await puppeteer.launch()
-    const page = await browser.newPage()
-    await page.setViewport({
-      width: 1040,
-      height: 780
+    browser = await puppeteer.launch({
+      // Launch using specific browser path if set
+      ...browserPath ? { executablePath: browserPath } : {},
+      args: [
+        '--disable-dev-shm-usage', // Used to prevent Chromium from crashing inside Docker
+        '--window-size=1040,780', // Need a larger window to render the whole Pokédex entry
+      ],
     })
+    const page = await browser.newPage()
     console.log("[PokéFusion API] Launched browser through Puppeteer")
 
     console.log("[PokéFusion API] Navigating to " + SITE_URL)
